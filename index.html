@@ -164,8 +164,8 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
         <div class="ci">🌍</div><h3>Annelore</h3>
         <p>Login om je eigen reizen te beheren</p>
       </div>
-      <div class="lcard guest" onclick="enterGuest()">
-        <div class="ci">👁️</div><h3>Gast</h3>
+      <div class="lcard guest" onclick="enterOverzicht()">
+        <div class="ci">👁️</div><h3>Overzicht</h3>
         <p>Bekijk het rad — reizen zijn anoniem</p>
       </div>
     </div>
@@ -178,7 +178,7 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
     <div class="logo">Travel<em>Wheel</em></div>
     <div class="user-badge">
       <div class="dot" id="hdr-dot"></div>
-      <span id="hdr-name">Gast</span>
+      <span id="hdr-name">Overzicht</span>
       <button class="ghost-btn" onclick="logout()">Uitloggen</button>
     </div>
   </header>
@@ -406,8 +406,8 @@ function enterUser(who) {
   CU = who;
   showMain();
 }
-function enterGuest() {
-  CU = 'guest';
+function enterOverzicht() {
+  CU = 'overzicht';
   showMain();
 }
 function logout() {
@@ -431,7 +431,7 @@ function showMain() {
 function updateHeader() {
   const dot = document.getElementById('hdr-dot');
   dot.className = 'dot' + (CU === 'p1' ? ' p1' : CU === 'p2' ? ' p2' : '');
-  document.getElementById('hdr-name').textContent = CU === 'p1' ? 'Yoran' : CU === 'p2' ? 'Annelore' : 'Gast';
+  document.getElementById('hdr-name').textContent = CU === 'p1' ? 'Yoran' : CU === 'p2' ? 'Annelore' : 'Overzicht';
 }
 
 // ════════════════════════════════════════
@@ -448,14 +448,21 @@ function renderTrips() {
   document.getElementById('trip-count').textContent = all.length;
   const spinBtn = document.getElementById('spin-btn');
   const spinHint = document.getElementById('spin-hint');
-  spinBtn.disabled = all.length < 2;
-  spinHint.style.display = all.length < 2 ? 'block' : 'none';
+  if (CU === 'overzicht') {
+    spinBtn.style.display = 'inline-flex';
+    spinBtn.disabled = all.length < 2;
+    spinHint.style.display = all.length < 2 ? 'block' : 'none';
+  } else {
+    spinBtn.style.display = 'none';
+    spinHint.style.display = 'block';
+    spinHint.textContent = 'Draaien kan enkel in Overzicht modus';
+  }
 
-  if (CU === 'guest') {
+  if (CU === 'overzicht') {
     title.textContent = 'Alle reizen';
     addBtn.style.display = 'none';
     slotInfo.style.display = 'none';
-    guestNote.innerHTML = `<div class="guest-note"><strong style="color:var(--gold)">Gast modus</strong> — Reizen zijn anoniem. Login om reizen te beheren.</div>`;
+    guestNote.innerHTML = `<div class="guest-note"><strong style="color:var(--gold)">Overzicht modus</strong> — Draai het rad om een reis te kiezen. Reizen zijn anoniem.</div>`;
     if (all.length === 0) {
       list.innerHTML = `<div class="empty-state"><div class="ei">🗺️</div><p>Nog geen reizen ingegeven.</p></div>`;
     } else {
@@ -613,7 +620,7 @@ function drawSliceLabel(ctx,cx,cy,R,trip,start,end) {
   ctx.translate(cx+Math.cos(mid)*lr, cy+Math.sin(mid)*lr);
   ctx.rotate(mid+Math.PI/2);
   ctx.font='bold 10px Inter,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  if (CU === 'guest' || CU !== trip.owner) {
+  if (CU === 'overzicht' || CU !== trip.owner) {
     ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillText('■■■■■',0,0);
   } else {
     ctx.fillStyle='#fff';
@@ -654,13 +661,15 @@ function showWinner() {
   const norm=((wheelAngle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
   const pa=(Math.PI/2-norm+Math.PI*2)%(Math.PI*2);
   const winner=trips[Math.floor(pa/sa)%trips.length];
-  const canSee=CU!=='guest'&&CU===winner.owner;
+  const isOwner = CU !== 'overzicht' && CU === winner.owner;
+  const ownerName = winner.owner === 'p1' ? 'Yoran' : 'Annelore';
   const bud=(winner.bmin||winner.bmax)?`€${winner.bmin||'?'} – €${winner.bmax||'?'}`:'Niet ingevuld';
-  document.getElementById('winner-content').innerHTML = canSee
+  // Bestemming altijd zichtbaar, details alleen voor eigenaar
+  document.getElementById('winner-content').innerHTML = isOwner
     ? `<div class="winner-dest">${winner.dest}</div>
        <div class="winner-details">🏙️ ${winner.cities}<br>📅 ${winner.period}<br>⏱️ ${winner.duration} dagen<br>💶 ${bud}${winner.notes?`<br><br><em>"${winner.notes}"</em>`:''}</div>`
-    : `<div class="winner-dest" style="filter:blur(8px);user-select:none">████████████</div>
-       <div class="winner-redacted">🎁 Een verrassing van ${winner.owner==='p1'?'Yoran':'Annelore'}!<br><small style="font-weight:normal;opacity:.8">Login als ${winner.owner==='p1'?'Yoran':'Annelore'} om de details te zien</small></div>`;
+    : `<div class="winner-dest">${winner.dest}</div>
+       <div class="winner-redacted">🔒 Details zijn zichtbaar voor ${ownerName}<br><small style="font-weight:normal;opacity:.8">Login als ${ownerName} om alles te zien</small></div>`;
   openModal('winner-modal');
   launchConfetti();
 }
