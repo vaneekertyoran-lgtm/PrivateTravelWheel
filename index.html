@@ -157,11 +157,11 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
     </div>
     <div class="login-cards">
       <div class="lcard p1" onclick="openLoginModal('p1')">
-        <div class="ci">✈️</div><h3>Reiziger 1</h3>
+        <div class="ci">✈️</div><h3>Yoran</h3>
         <p>Login om je eigen reizen te beheren</p>
       </div>
       <div class="lcard p2" onclick="openLoginModal('p2')">
-        <div class="ci">🌍</div><h3>Reiziger 2</h3>
+        <div class="ci">🌍</div><h3>Annelore</h3>
         <p>Login om je eigen reizen te beheren</p>
       </div>
       <div class="lcard guest" onclick="enterGuest()">
@@ -314,7 +314,7 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
 //  STATE
 // ════════════════════════════════════════
 const KEY = 'travelwheel_v3';
-const DEFAULT_PW = { p1: 'reiziger1', p2: 'reiziger2' };
+const DEFAULT_PW = { p1: 'yoran1', p2: 'annelore2' };
 const WHEEL_COLORS = ['#2d6a4f','#1d3557','#6d2b3d','#3d405b','#5c4033','#1b4332','#2c3e50','#7b2d00','#1a1a2e','#3b1f2b','#0a3d62'];
 
 let ST = load();
@@ -336,7 +336,7 @@ function allTrips() { return [...ST.trips.p1, ...ST.trips.p2]; }
 // ════════════════════════════════════════
 function openLoginModal(who) {
   loginTarget = who;
-  document.getElementById('login-title').textContent = who === 'p1' ? 'Reiziger 1' : 'Reiziger 2';
+  document.getElementById('login-title').textContent = who === 'p1' ? 'Yoran' : 'Annelore';
   document.getElementById('login-pw').value = '';
   document.getElementById('login-err').classList.remove('show');
   openModal('login-modal');
@@ -431,7 +431,7 @@ function showMain() {
 function updateHeader() {
   const dot = document.getElementById('hdr-dot');
   dot.className = 'dot' + (CU === 'p1' ? ' p1' : CU === 'p2' ? ' p2' : '');
-  document.getElementById('hdr-name').textContent = CU === 'p1' ? 'Reiziger 1' : CU === 'p2' ? 'Reiziger 2' : 'Gast';
+  document.getElementById('hdr-name').textContent = CU === 'p1' ? 'Yoran' : CU === 'p2' ? 'Annelore' : 'Gast';
 }
 
 // ════════════════════════════════════════
@@ -660,7 +660,7 @@ function showWinner() {
     ? `<div class="winner-dest">${winner.dest}</div>
        <div class="winner-details">🏙️ ${winner.cities}<br>📅 ${winner.period}<br>⏱️ ${winner.duration} dagen<br>💶 ${bud}${winner.notes?`<br><br><em>"${winner.notes}"</em>`:''}</div>`
     : `<div class="winner-dest" style="filter:blur(8px);user-select:none">████████████</div>
-       <div class="winner-redacted">🎁 Een verrassing van ${winner.owner==='p1'?'Reiziger 1':'Reiziger 2'}!<br><small style="font-weight:normal;opacity:.8">Login als ${winner.owner==='p1'?'Reiziger 1':'Reiziger 2'} om de details te zien</small></div>`;
+       <div class="winner-redacted">🎁 Een verrassing van ${winner.owner==='p1'?'Yoran':'Annelore'}!<br><small style="font-weight:normal;opacity:.8">Login als ${winner.owner==='p1'?'Yoran':'Annelore'} om de details te zien</small></div>`;
   openModal('winner-modal');
   launchConfetti();
 }
