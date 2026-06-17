@@ -75,7 +75,8 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
 .ghost-btn:hover{border-color:var(--muted);color:var(--text)}
 
 /* MAIN LAYOUT */
-#main-screen{display:none}.#main-screen.active{display:block}
+#main-screen{display:none}
+#main-screen.active{display:block}
 .main-layout{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 57px)}
 @media(max-width:860px){.main-layout{grid-template-columns:1fr}}
 
@@ -145,7 +146,7 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
 <canvas id="confetti-canvas"></canvas>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" class="screen active">
+<div id="login-screen" class="screen" style="display:block">
   <header>
     <div class="logo">Travel<em>Wheel</em></div>
   </header>
@@ -172,7 +173,7 @@ header{padding:16px 24px;display:flex;align-items:center;justify-content:space-b
 </div>
 
 <!-- MAIN SCREEN -->
-<div id="main-screen" class="screen">
+<div id="main-screen" class="screen" style="display:none">
   <header>
     <div class="logo">Travel<em>Wheel</em></div>
     <div class="user-badge">
@@ -418,8 +419,8 @@ function logout() {
 //  SCREENS
 // ════════════════════════════════════════
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
 }
 function showMain() {
   showScreen('main-screen');
