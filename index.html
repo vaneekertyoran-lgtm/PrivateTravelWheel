@@ -661,15 +661,10 @@ function showWinner() {
   const norm=((wheelAngle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
   const pa=(Math.PI/2-norm+Math.PI*2)%(Math.PI*2);
   const winner=trips[Math.floor(pa/sa)%trips.length];
-  const isOwner = CU !== 'overzicht' && CU === winner.owner;
-  const ownerName = winner.owner === 'p1' ? 'Yoran' : 'Annelore';
   const bud=(winner.bmin||winner.bmax)?`€${winner.bmin||'?'} – €${winner.bmax||'?'}`:'Niet ingevuld';
-  // Bestemming altijd zichtbaar, details alleen voor eigenaar
-  document.getElementById('winner-content').innerHTML = isOwner
-    ? `<div class="winner-dest">${winner.dest}</div>
-       <div class="winner-details">🏙️ ${winner.cities}<br>📅 ${winner.period}<br>⏱️ ${winner.duration} dagen<br>💶 ${bud}${winner.notes?`<br><br><em>"${winner.notes}"</em>`:''}</div>`
-    : `<div class="winner-dest">${winner.dest}</div>
-       <div class="winner-redacted">🔒 Details zijn zichtbaar voor ${ownerName}<br><small style="font-weight:normal;opacity:.8">Login als ${ownerName} om alles te zien</small></div>`;
+  document.getElementById('winner-content').innerHTML =
+    `<div class="winner-dest">${winner.dest}</div>
+     <div class="winner-details">🏙️ ${winner.cities}<br>📅 ${winner.period}<br>⏱️ ${winner.duration} dagen<br>💶 ${bud}${winner.notes?`<br><br><em>"${winner.notes}"</em>`:''}</div>`;
   openModal('winner-modal');
   launchConfetti();
 }
