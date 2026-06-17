@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TravelWheel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+:root {
+  --night:#0d1b2a; --deep:#1b2d42; --card:#1e3352;
+  --gold:#c9a84c; --gold-l:#f0c060; --amber:#e8855a;
+  --text:#e8dcc8; --muted:#8a9bb0; --border:rgba(201,168,76,0.2);
+  --p1:#5b9bd5; --p2:#d57b5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--night);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(91,155,213,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,0.05) 0%,transparent 50%)}
+.screen{display:none;min-height:100vh}.screen.active{display:block}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* HEADER */
+header{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);letter-spacing:.03em}
+.logo em{font-style:italic;color:var(--text)}
+.user-badge{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.dot.p1{background:var(--p1)}.dot.p2{background:var(--p2)}
+
+/* LOGIN */
+#login-screen{display:flex;flex-direction:column}
+.login-body{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:40px;padding:50px 20px;min-height:calc(100vh - 57px)}
+.compass{font-size:3.5rem;display:block;margin-bottom:14px;animation:spin-slow 20s linear infinite}
+.login-hero{text-align:center}
+.login-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,6vw,3.5rem);color:var(--gold);line-height:1.1}
+.login-hero h1 em{display:block;font-size:.55em;font-style:italic;color:var(--text);opacity:.7;margin-top:6px}
+.login-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:660px}
+.lcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 20px;flex:1;min-width:180px;max-width:240px;cursor:pointer;text-align:center;transition:all .2s}
+.lcard:hover{transform:translateY(-3px)}
+.lcard.p1{border-color:rgba(91,155,213,.35)}.lcard.p1:hover{border-color:var(--p1)}
+.lcard.p2{border-color:rgba(213,123,91,.35)}.lcard.p2:hover{border-color:var(--p2)}
+.lcard.guest:hover{border-color:var(--muted)}
+.lcard .ci{font-size:2rem;margin-bottom:10px}
+.lcard h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin-bottom:5px}
+.lcard p{font-size:.78rem;color:var(--muted);line-height:1.5}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--deep);border:1px solid var(--border);border-radius:18px;padding:30px 26px;width:90%;max-width:420px;transform:translateY(20px);transition:transform .25s;max-height:90vh;overflow-y:auto}
+.overlay.open .modal{transform:translateY(0)}
+.modal h2{font-family:'Playfair Display',serif;color:var(--gold);margin-bottom:5px;font-size:1.3rem}
+.modal .sub{color:var(--muted);font-size:.82rem;margin-bottom:18px}
+.winner-modal{background:var(--deep);border:2px solid var(--gold);border-radius:18px;padding:34px 26px;width:90%;max-width:420px;text-align:center;transform:translateY(20px);transition:transform .25s}
+.overlay.open .winner-modal{transform:translateY(0)}
+
+/* FORMS */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.74rem;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;color-scheme:dark}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.field textarea{resize:vertical;min-height:65px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sec-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.err{color:#e07070;font-size:.8rem;margin-bottom:10px;display:none}.err.show{display:block}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:500;transition:all .2s}
+.btn-p{background:var(--gold);color:var(--night)}.btn-p:hover{background:var(--gold-l)}
+.btn-g{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.1)}.btn-g:hover{border-color:var(--muted);color:var(--text)}
+.btn-d{background:rgba(200,60,60,.15);color:#e07070;border:1px solid rgba(200,60,60,.2)}.btn-d:hover{background:rgba(200,60,60,.25)}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+.btn-full{width:100%}
+.modal-actions{display:flex;gap:10px;margin-top:12px}
+.ghost-btn{background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;font-family:inherit;transition:all .2s}
+.ghost-btn:hover{border-color:var(--muted);color:var(--text)}
+
+/* MAIN LAYOUT */
+#main-screen{display:none}.#main-screen.active{display:block}
+.main-layout{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 57px)}
+@media(max-width:860px){.main-layout{grid-template-columns:1fr}}
+
+/* WHEEL SIDE */
+.wheel-side{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 24px;gap:20px;border-right:1px solid var(--border)}
+@media(max-width:860px){.wheel-side{border-right:none;border-bottom:1px solid var(--border)}}
+.wheel-title{text-align:center}
+.wheel-title h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold)}
+.wheel-title p{font-size:.8rem;color:var(--muted);margin-top:4px}
+.count-badge{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:7px 18px;font-size:.83rem}
+.count-pill{background:var(--gold);color:var(--night);font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem}
+.wheel-wrap{position:relative}
+.wheel-pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:26px solid var(--gold);filter:drop-shadow(0 2px 6px rgba(201,168,76,.5));z-index:10}
+#wheel-canvas{border-radius:50%;box-shadow:0 0 50px rgba(201,168,76,.15),0 0 100px rgba(0,0,0,.5);display:block}
+.spin-btn{background:linear-gradient(135deg,var(--gold) 0%,var(--amber) 100%);color:var(--night);font-size:.95rem;font-weight:600;padding:13px 36px;border-radius:50px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(201,168,76,.3);font-family:'Inter',sans-serif;transition:all .2s}
+.spin-btn:hover{transform:scale(1.04)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;background:#555}
+.spin-hint{font-size:.75rem;color:var(--muted)}
+
+/* TRIPS SIDE */
+.trips-side{padding:28px 24px;overflow-y:auto;max-height:calc(100vh - 57px)}
+.trips-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.trips-header h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold)}
+.slot-info{font-size:.76rem;color:var(--muted);text-align:right;margin-bottom:10px}
+.slot-info span{color:var(--gold);font-weight:600}
+.trip-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px;margin-bottom:12px}
+.trip-card:hover{border-color:rgba(201,168,76,.4)}
+.trip-dest{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin-bottom:3px}
+.trip-cities{font-size:.77rem;color:var(--muted);font-style:italic;margin-bottom:7px}
+.trip-sub{display:flex;flex-wrap:wrap;gap:5px}
+.tag{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:2px 7px;font-size:.72rem;color:var(--muted)}
+.tag.gold{border-color:rgba(201,168,76,.3);color:var(--gold-l)}
+.tag.blue{border-color:rgba(91,155,213,.3);color:#8bb8e8}
+.trip-actions{display:flex;gap:5px;margin-top:8px}
+.trip-row{display:flex;justify-content:space-between;align-items:flex-start}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .ei{font-size:2.5rem;margin-bottom:12px}
+.guest-note{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:9px 13px;font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:16px}
+
+/* FIRST LOGIN BOX */
+.first-login-box{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:.82rem;color:var(--text);line-height:1.7}
+.pw-bar-wrap{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden}
+.pw-bar{height:100%;border-radius:2px;transition:all .3s}
+.pw-label{font-size:.72rem;color:var(--muted);margin-top:3px}
+
+/* DETAIL ROWS */
+.detail-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.detail-row:last-child{border-bottom:none}
+.detail-icon{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+.detail-label{font-size:.7rem;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
+.detail-value{font-size:.88rem;color:var(--text)}
+
+/* WINNER */
+.winner-dest{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gold-l);margin:10px 0 4px}
+.winner-details{font-size:.85rem;color:var(--muted);line-height:1.9;margin:10px 0 18px}
+.winner-redacted{background:var(--gold);color:var(--night);border-radius:8px;padding:11px 14px;font-weight:600;font-size:1rem;margin:10px 0 18px}
+
+/* CONFETTI */
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="screen active">
+  <header>
+    <div class="logo">Travel<em>Wheel</em></div>
+  </header>
+  <div class="login-body">
+    <div class="login-hero">
+      <span class="compass">🧭</span>
+      <h1>TravelWheel<em>Kies jullie avontuur</em></h1>
+    </div>
+    <div class="login-cards">
+      <div class="lcard p1" onclick="openLoginModal('p1')">
+        <div class="ci">✈️</div><h3>Reiziger 1</h3>
+        <p>Login om je eigen reizen te beheren</p>
+      </div>
+      <div class="lcard p2" onclick="openLoginModal('p2')">
+        <div class="ci">🌍</div><h3>Reiziger 2</h3>
+        <p>Login om je eigen reizen te beheren</p>
+      </div>
+      <div class="lcard guest" onclick="enterGuest()">
+        <div class="ci">👁️</div><h3>Gast</h3>
+        <p>Bekijk het rad — reizen zijn anoniem</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main-screen" class="screen">
+  <header>
+    <div class="logo">Travel<em>Wheel</em></div>
+    <div class="user-badge">
+      <div class="dot" id="hdr-dot"></div>
+      <span id="hdr-name">Gast</span>
+      <button class="ghost-btn" onclick="logout()">Uitloggen</button>
+    </div>
+  </header>
+  <div class="main-layout">
+    <div class="wheel-side">
+      <div class="wheel-title">
+        <h2>Het Rad der Avonturen</h2>
+        <p>Draai om jullie bestemming te bepalen</p>
+      </div>
+      <div class="count-badge">
+        <div class="count-pill" id="trip-count">0</div>
+        <span>reizen in de pot</span>
+      </div>
+      <div class="wheel-wrap" id="wheel-wrap">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheel-canvas" width="300" height="300"></canvas>
+      </div>
+      <button class="spin-btn" id="spin-btn" onclick="spinWheel()">🎲 Draai het Rad!</button>
+      <p class="spin-hint" id="spin-hint" style="display:none">Minimum 2 reizen nodig</p>
+    </div>
+    <div class="trips-side">
+      <div id="guest-note"></div>
+      <div class="trips-header">
+        <h2 id="trips-title">Reizen</h2>
+        <button class="btn btn-p btn-sm" id="add-btn" onclick="openAddTrip()" style="display:none">+ Reis toevoegen</button>
+      </div>
+      <div class="slot-info" id="slot-info" style="display:none"><span id="slot-n">0</span> / 5 plekken gebruikt</div>
+      <div id="trips-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="login-modal">
+  <div class="modal">
+    <h2 id="login-title">Inloggen</h2>
+    <p class="sub">Voer je wachtwoord in</p>
+    <div class="field">
+      <label>Wachtwoord</label>
+      <input type="password" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="err" id="login-err">Verkeerd wachtwoord.</div>
+    <div class="modal-actions">
+      <button class="btn btn-p" style="flex:1" onclick="doLogin()">Inloggen</button>
+      <button class="btn btn-g" onclick="closeModal('login-modal')">Annuleer</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIRST LOGIN: CHANGE PASSWORD MODAL -->
+<div class="overlay" id="firstpw-modal">
+  <div class="modal">
+    <h2>🔐 Kies je wachtwoord</h2>
+    <div class="first-login-box">
+      Welkom! Dit is je <strong>eerste keer inloggen</strong>.<br>
+      Stel een persoonlijk wachtwoord in zodat de ander je reizen niet kan zien.
+    </div>
+    <div class="field">
+      <label>Nieuw wachtwoord (min. 6 tekens)</label>
+      <input type="password" id="fpw-new" placeholder="••••••••" oninput="updatePwBar()" onkeydown="if(event.key==='Enter')doFirstPw()">
+      <div class="pw-bar-wrap"><div class="pw-bar" id="pw-bar" style="width:0%"></div></div>
+      <div class="pw-label" id="pw-label"></div>
+    </div>
+    <div class="field">
+      <label>Bevestig wachtwoord</label>
+      <input type="password" id="fpw-confirm" placeholder="••••••••" onkeydown="if(event.key==='Enter')doFirstPw()">
+    </div>
+    <div class="err" id="fpw-err">Fout</div>
+    <div class="modal-actions">
+      <button class="btn btn-p" style="flex:1" onclick="doFirstPw()">Wachtwoord instellen</button>
+      <button class="btn btn-g" onclick="skipFirstPw()">Sla over</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT TRIP MODAL -->
+<div class="overlay" id="trip-modal">
+  <div class="modal" style="max-width:500px">
+    <h2 id="trip-modal-title">Reis toevoegen</h2>
+    <p class="sub">Vul de details in van je droombestemming</p>
+    <div class="sec-title">🌍 Bestemming</div>
+    <div class="field"><label>Naam / Bestemming *</label><input type="text" id="f-dest" placeholder="bv. Japan – Lente avontuur"></div>
+    <div class="field"><label>Steden / Plaatsen *</label><input type="text" id="f-cities" placeholder="bv. Tokyo, Kyoto, Osaka, Nara"></div>
+    <div class="sec-title">📅 Planning</div>
+    <div class="two-col">
+      <div class="field"><label>Duur (dagen) *</label><input type="number" id="f-duration" placeholder="14" min="1"></div>
+      <div class="field"><label>Beste periode *</label>
+        <select id="f-period">
+          <option value="">— kies —</option>
+          <option>Januari – Februari</option><option>Februari – Maart</option><option>Maart – April</option>
+          <option>April – Mei</option><option>Mei – Juni</option><option>Juni – Juli</option>
+          <option>Juli – Augustus</option><option>Augustus – September</option><option>September – Oktober</option>
+          <option>Oktober – November</option><option>November – December</option><option>Het hele jaar</option>
+        </select>
+      </div>
+    </div>
+    <div class="sec-title">💶 Budget</div>
+    <div class="two-col">
+      <div class="field"><label>Min. budget (€)</label><input type="number" id="f-bmin" placeholder="1500"></div>
+      <div class="field"><label>Max. budget (€)</label><input type="number" id="f-bmax" placeholder="2500"></div>
+    </div>
+    <div class="sec-title">📝 Extra</div>
+    <div class="field"><label>Notities (optioneel)</label><textarea id="f-notes" placeholder="Waarom wil je hier naartoe?"></textarea></div>
+    <div class="err" id="trip-err">Vul verplichte velden in (*)</div>
+    <div class="modal-actions">
+      <button class="btn btn-p" style="flex:1" onclick="saveTrip()">Opslaan</button>
+      <button class="btn btn-g" onclick="closeModal('trip-modal')">Annuleer</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW TRIP MODAL -->
+<div class="overlay" id="view-modal">
+  <div class="modal">
+    <h2 id="view-title" style="margin-bottom:14px">Reis</h2>
+    <div id="view-content"></div>
+    <div class="modal-actions" style="margin-top:18px" id="view-actions"></div>
+  </div>
+</div>
+
+<!-- WINNER MODAL -->
+<div class="overlay" id="winner-modal">
+  <div class="winner-modal">
+    <div style="font-size:2.8rem;margin-bottom:10px">🎉</div>
+    <h2 style="font-family:'Playfair Display',serif;color:var(--gold);font-size:1.4rem;margin-bottom:4px">Dit jaar gaan jullie naar…</h2>
+    <div id="winner-content"></div>
+    <button class="btn btn-p btn-full" onclick="closeModal('winner-modal')">Geweldig! 🌍</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+const KEY = 'travelwheel_v3';
+const DEFAULT_PW = { p1: 'reiziger1', p2: 'reiziger2' };
+const WHEEL_COLORS = ['#2d6a4f','#1d3557','#6d2b3d','#3d405b','#5c4033','#1b4332','#2c3e50','#7b2d00','#1a1a2e','#3b1f2b','#0a3d62'];
+
+let ST = load();
+let CU = null; // current user: 'p1','p2','guest'
+let wheelAngle = 0;
+let spinning = false;
+let editIdx = null;
+let loginTarget = null;
+
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch {}
+  return { passwords: { p1: DEFAULT_PW.p1, p2: DEFAULT_PW.p2 }, pwChanged: { p1: false, p2: false }, trips: { p1: [], p2: [] } };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(ST)); }
+function allTrips() { return [...ST.trips.p1, ...ST.trips.p2]; }
+
+// ════════════════════════════════════════
+//  LOGIN
+// ════════════════════════════════════════
+function openLoginModal(who) {
+  loginTarget = who;
+  document.getElementById('login-title').textContent = who === 'p1' ? 'Reiziger 1' : 'Reiziger 2';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-err').classList.remove('show');
+  openModal('login-modal');
+  setTimeout(() => document.getElementById('login-pw').focus(), 200);
+}
+
+function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (!pw) return;
+  if (ST.passwords[loginTarget] === pw) {
+    closeModal('login-modal');
+    if (!ST.pwChanged[loginTarget]) {
+      // First login — prompt password change
+      document.getElementById('fpw-new').value = '';
+      document.getElementById('fpw-confirm').value = '';
+      document.getElementById('fpw-err').classList.remove('show');
+      document.getElementById('pw-bar').style.width = '0%';
+      document.getElementById('pw-label').textContent = '';
+      openModal('firstpw-modal');
+      setTimeout(() => document.getElementById('fpw-new').focus(), 200);
+    } else {
+      enterUser(loginTarget);
+    }
+  } else {
+    document.getElementById('login-err').classList.add('show');
+    document.getElementById('login-pw').value = '';
+  }
+}
+
+function updatePwBar() {
+  const pw = document.getElementById('fpw-new').value;
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const colors = ['#e07070','#e0c070','#a0d090','#5bc890'];
+  const labels = ['Zwak','Matig','Goed','Sterk'];
+  const bar = document.getElementById('pw-bar');
+  bar.style.width = (score * 25) + '%';
+  bar.style.background = colors[Math.max(0, score - 1)] || '#555';
+  document.getElementById('pw-label').textContent = score > 0 ? labels[score - 1] : '';
+}
+
+function doFirstPw() {
+  const nw = document.getElementById('fpw-new').value;
+  const cf = document.getElementById('fpw-confirm').value;
+  const err = document.getElementById('fpw-err');
+  if (nw.length < 6) { err.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; err.classList.add('show'); return; }
+  if (nw !== cf) { err.textContent = 'Wachtwoorden komen niet overeen.'; err.classList.add('show'); return; }
+  if (nw === DEFAULT_PW[loginTarget]) { err.textContent = 'Kies een ander wachtwoord dan het standaard.'; err.classList.add('show'); return; }
+  ST.passwords[loginTarget] = nw;
+  ST.pwChanged[loginTarget] = true;
+  save();
+  closeModal('firstpw-modal');
+  enterUser(loginTarget);
+}
+
+function skipFirstPw() {
+  ST.pwChanged[loginTarget] = true;
+  save();
+  closeModal('firstpw-modal');
+  enterUser(loginTarget);
+}
+
+function enterUser(who) {
+  CU = who;
+  showMain();
+}
+function enterGuest() {
+  CU = 'guest';
+  showMain();
+}
+function logout() {
+  CU = null;
+  showScreen('login-screen');
+}
+
+// ════════════════════════════════════════
+//  SCREENS
+// ════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showMain() {
+  showScreen('main-screen');
+  updateHeader();
+  renderTrips();
+  drawWheel();
+}
+function updateHeader() {
+  const dot = document.getElementById('hdr-dot');
+  dot.className = 'dot' + (CU === 'p1' ? ' p1' : CU === 'p2' ? ' p2' : '');
+  document.getElementById('hdr-name').textContent = CU === 'p1' ? 'Reiziger 1' : CU === 'p2' ? 'Reiziger 2' : 'Gast';
+}
+
+// ════════════════════════════════════════
+//  TRIPS
+// ════════════════════════════════════════
+function renderTrips() {
+  const list = document.getElementById('trips-list');
+  const addBtn = document.getElementById('add-btn');
+  const slotInfo = document.getElementById('slot-info');
+  const guestNote = document.getElementById('guest-note');
+  const title = document.getElementById('trips-title');
+
+  const all = allTrips();
+  document.getElementById('trip-count').textContent = all.length;
+  const spinBtn = document.getElementById('spin-btn');
+  const spinHint = document.getElementById('spin-hint');
+  spinBtn.disabled = all.length < 2;
+  spinHint.style.display = all.length < 2 ? 'block' : 'none';
+
+  if (CU === 'guest') {
+    title.textContent = 'Alle reizen';
+    addBtn.style.display = 'none';
+    slotInfo.style.display = 'none';
+    guestNote.innerHTML = `<div class="guest-note"><strong style="color:var(--gold)">Gast modus</strong> — Reizen zijn anoniem. Login om reizen te beheren.</div>`;
+    if (all.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="ei">🗺️</div><p>Nog geen reizen ingegeven.</p></div>`;
+    } else {
+      list.innerHTML = all.map((_, i) => `
+        <div class="trip-card">
+          <div class="trip-dest" style="filter:blur(7px);user-select:none">████████████</div>
+          <div class="trip-cities" style="filter:blur(4px)">██████, ██████</div>
+          <div class="trip-sub"><span class="tag">Reis ${i+1}</span><span class="tag">Verborgen</span></div>
+        </div>`).join('');
+    }
+    return;
+  }
+
+  guestNote.innerHTML = '';
+  title.textContent = 'Mijn reizen';
+  const my = ST.trips[CU];
+  addBtn.style.display = my.length < 5 ? 'flex' : 'none';
+  slotInfo.style.display = 'block';
+  document.getElementById('slot-n').textContent = my.length;
+
+  if (my.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="ei">✈️</div><p>Nog geen reizen toegevoegd.<br>Voeg tot 5 droombestemmingen toe!</p></div>`;
+    return;
+  }
+
+  list.innerHTML = my.map((t, i) => `
+    <div class="trip-card">
+      <div class="trip-row">
+        <div style="flex:1">
+          <div class="trip-dest">${t.dest}</div>
+          <div class="trip-cities">${t.cities}</div>
+          <div class="trip-sub">
+            ${t.period ? `<span class="tag blue">📅 ${t.period}</span>` : ''}
+            ${t.duration ? `<span class="tag">⏱ ${t.duration} d</span>` : ''}
+            ${(t.bmin||t.bmax) ? `<span class="tag gold">💶 €${t.bmin||'?'}–${t.bmax||'?'}</span>` : ''}
+          </div>
+        </div>
+        <div class="trip-actions">
+          <button class="btn btn-g btn-sm" onclick="viewTrip(${i})">👁</button>
+          <button class="btn btn-g btn-sm" onclick="editTrip(${i})">✏️</button>
+          <button class="btn btn-d btn-sm" onclick="deleteTrip(${i})">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openAddTrip() {
+  editIdx = null;
+  document.getElementById('trip-modal-title').textContent = 'Reis toevoegen';
+  ['f-dest','f-cities','f-duration','f-bmin','f-bmax','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-period').value = '';
+  document.getElementById('trip-err').classList.remove('show');
+  openModal('trip-modal');
+}
+function editTrip(idx) {
+  editIdx = idx;
+  const t = ST.trips[CU][idx];
+  document.getElementById('trip-modal-title').textContent = 'Reis bewerken';
+  document.getElementById('f-dest').value = t.dest || '';
+  document.getElementById('f-cities').value = t.cities || '';
+  document.getElementById('f-duration').value = t.duration || '';
+  document.getElementById('f-period').value = t.period || '';
+  document.getElementById('f-bmin').value = t.bmin || '';
+  document.getElementById('f-bmax').value = t.bmax || '';
+  document.getElementById('f-notes').value = t.notes || '';
+  document.getElementById('trip-err').classList.remove('show');
+  openModal('trip-modal');
+}
+function saveTrip() {
+  const dest = document.getElementById('f-dest').value.trim();
+  const cities = document.getElementById('f-cities').value.trim();
+  const dur = document.getElementById('f-duration').value;
+  const per = document.getElementById('f-period').value;
+  if (!dest || !cities || !dur || !per) { document.getElementById('trip-err').classList.add('show'); return; }
+  const trip = { dest, cities, duration: parseInt(dur), period: per,
+    bmin: document.getElementById('f-bmin').value, bmax: document.getElementById('f-bmax').value,
+    notes: document.getElementById('f-notes').value.trim(), owner: CU, id: Date.now() };
+  if (editIdx !== null) ST.trips[CU][editIdx] = trip;
+  else ST.trips[CU].push(trip);
+  save(); closeModal('trip-modal'); renderTrips(); drawWheel();
+}
+function deleteTrip(idx) {
+  if (!confirm('Wil je deze reis verwijderen?')) return;
+  ST.trips[CU].splice(idx, 1);
+  save(); renderTrips(); drawWheel();
+}
+function viewTrip(idx) {
+  const t = ST.trips[CU][idx];
+  document.getElementById('view-title').textContent = t.dest;
+  const bud = (t.bmin||t.bmax) ? `€${t.bmin||'?'} – €${t.bmax||'?'}` : 'Niet ingevuld';
+  document.getElementById('view-content').innerHTML = [
+    {icon:'🏙️',lbl:'Steden & Plaatsen',val:t.cities},
+    {icon:'📅',lbl:'Beste periode',val:t.period||'—'},
+    {icon:'⏱️',lbl:'Duur',val:t.duration?`${t.duration} dagen`:'—'},
+    {icon:'💶',lbl:'Budget',val:bud},
+    ...(t.notes?[{icon:'📝',lbl:'Notities',val:t.notes}]:[])
+  ].map(r=>`<div class="detail-row"><div class="detail-icon">${r.icon}</div><div><div class="detail-label">${r.lbl}</div><div class="detail-value">${r.val||'—'}</div></div></div>`).join('');
+  document.getElementById('view-actions').innerHTML =
+    `<button class="btn btn-g" style="flex:1" onclick="closeModal('view-modal')">Sluiten</button>
+     <button class="btn btn-p" style="flex:1" onclick="closeModal('view-modal');editTrip(${idx})">Bewerken</button>`;
+  openModal('view-modal');
+}
+
+// ════════════════════════════════════════
+//  WHEEL
+// ════════════════════════════════════════
+function wheelSize() {
+  return window.innerWidth < 860 ? Math.min(260, window.innerWidth - 60) : 300;
+}
+function drawWheel() {
+  const size = wheelSize();
+  const canvas = document.getElementById('wheel-canvas');
+  canvas.width = canvas.height = size;
+  const wrap = document.getElementById('wheel-wrap');
+  wrap.style.width = wrap.style.height = size + 'px';
+  const ctx = canvas.getContext('2d');
+  const cx = size/2, cy = size/2, R = size/2 - 8;
+  const trips = allTrips();
+  ctx.clearRect(0, 0, size, size);
+
+  if (trips.length === 0) {
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle='#1e3352'; ctx.fill();
+    ctx.strokeStyle='rgba(201,168,76,.3)'; ctx.lineWidth=3; ctx.stroke();
+    ctx.font='0.85rem Inter,sans-serif'; ctx.fillStyle='#8a9bb0';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Geen reizen',cx,cy-10); ctx.fillText('in de pot',cx,cy+14);
+    return;
+  }
+  const sa = (Math.PI*2)/trips.length;
+  if (trips.length === 1) {
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle=WHEEL_COLORS[0]; ctx.fill();
+    drawSliceLabel(ctx,cx,cy,R,trips[0],0,Math.PI*2);
+  } else {
+    for (let i=0;i<trips.length;i++) {
+      const st=wheelAngle+i*sa-Math.PI/2, en=st+sa;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,st,en); ctx.closePath();
+      ctx.fillStyle=WHEEL_COLORS[i%WHEEL_COLORS.length]; ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=2; ctx.stroke();
+      drawSliceLabel(ctx,cx,cy,R,trips[i],st,en);
+    }
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.strokeStyle='rgba(201,168,76,.5)'; ctx.lineWidth=4; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,20,0,Math.PI*2);
+  ctx.fillStyle='#0d1b2a'; ctx.fill();
+  ctx.strokeStyle='rgba(201,168,76,.6)'; ctx.lineWidth=3; ctx.stroke();
+  ctx.font='15px sans-serif'; ctx.fillStyle='#fff';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('✈',cx,cy);
+}
+function drawSliceLabel(ctx,cx,cy,R,trip,start,end) {
+  const mid=(start+end)/2, lr=R*0.62;
+  ctx.save();
+  ctx.translate(cx+Math.cos(mid)*lr, cy+Math.sin(mid)*lr);
+  ctx.rotate(mid+Math.PI/2);
+  ctx.font='bold 10px Inter,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  if (CU==='guest') {
+    ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillText('■■■■■',0,0);
+  } else {
+    ctx.fillStyle='#fff';
+    const lbl = trip.dest.length>14 ? trip.dest.substring(0,13)+'…' : trip.dest;
+    const words = lbl.split(' ');
+    if (words.length>1&&lbl.length>10) {
+      const h=Math.ceil(words.length/2);
+      ctx.fillText(words.slice(0,h).join(' '),0,-7);
+      ctx.fillText(words.slice(h).join(' '),0,7);
+    } else ctx.fillText(lbl,0,0);
+  }
+  ctx.restore();
+}
+
+function spinWheel() {
+  const trips=allTrips();
+  if (trips.length<2||spinning) return;
+  spinning=true;
+  document.getElementById('spin-btn').disabled=true;
+  const totalRot=Math.PI*2*(8+Math.random()*8), duration=4000+Math.random()*2000;
+  const startAngle=wheelAngle, startTime=performance.now();
+  function ease(t){return 1-Math.pow(1-t,4);}
+  function frame(now){
+    const elapsed=now-startTime, progress=Math.min(elapsed/duration,1);
+    wheelAngle=startAngle+totalRot*ease(progress);
+    drawWheel();
+    if (progress<1) { requestAnimationFrame(frame); return; }
+    spinning=false;
+    document.getElementById('spin-btn').disabled=false;
+    showWinner();
+  }
+  requestAnimationFrame(frame);
+}
+
+function showWinner() {
+  const trips=allTrips(); if (!trips.length) return;
+  const sa=(Math.PI*2)/trips.length;
+  const norm=((wheelAngle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  const pa=(Math.PI/2-norm+Math.PI*2)%(Math.PI*2);
+  const winner=trips[Math.floor(pa/sa)%trips.length];
+  const canSee=CU!=='guest'&&CU===winner.owner;
+  const bud=(winner.bmin||winner.bmax)?`€${winner.bmin||'?'} – €${winner.bmax||'?'}`:'Niet ingevuld';
+  document.getElementById('winner-content').innerHTML = canSee
+    ? `<div class="winner-dest">${winner.dest}</div>
+       <div class="winner-details">🏙️ ${winner.cities}<br>📅 ${winner.period}<br>⏱️ ${winner.duration} dagen<br>💶 ${bud}${winner.notes?`<br><br><em>"${winner.notes}"</em>`:''}</div>`
+    : `<div class="winner-dest" style="filter:blur(8px);user-select:none">████████████</div>
+       <div class="winner-redacted">🎁 Een verrassing van ${winner.owner==='p1'?'Reiziger 1':'Reiziger 2'}!<br><small style="font-weight:normal;opacity:.8">Login als ${winner.owner==='p1'?'Reiziger 1':'Reiziger 2'} om de details te zien</small></div>`;
+  openModal('winner-modal');
+  launchConfetti();
+}
+
+// ════════════════════════════════════════
+//  CONFETTI
+// ════════════════════════════════════════
+function launchConfetti(){
+  const canvas=document.getElementById('confetti-canvas');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const colors=['#c9a84c','#5b9bd5','#d57b5b','#a0d090','#e0c070','#80b0ff'];
+  const pieces=Array.from({length:120},()=>({
+    x:Math.random()*canvas.width, y:-10-Math.random()*200,
+    w:8+Math.random()*8, h:5+Math.random()*5,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    vx:(Math.random()-.5)*4, vy:2+Math.random()*4,
+    rot:Math.random()*Math.PI*2, vrot:(Math.random()-.5)*.2, opacity:1
+  }));
+  let f=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vrot;if(f>80)p.opacity-=.012;ctx.save();ctx.globalAlpha=Math.max(0,p.opacity);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    f++; if(f<150)requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ════════════════════════════════════════
+//  MODAL HELPERS
+// ════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);}));
+window.addEventListener('resize',()=>{if(CU)drawWheel();});
+</script>
+</body>
+</html>
